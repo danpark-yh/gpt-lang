@@ -17,6 +17,7 @@
     "@types/react-dom": "18.2.6",
     "autoprefixer": "10.4.14",
     "axios": "^1.4.0",
+    "country-flag-icons": "^1.5.7",
     "eslint": "8.44.0",
     "eslint-config-next": "13.4.9",
     "next": "13.4.9",
@@ -27,5 +28,8 @@
     "react-hook-form": "^7.45.1",
     "tailwindcss": "3.3.2",
     "typescript": "5.1.6"
+  },
+  "devDependencies": {
+    "@hookform/devtools": "^4.3.1"
   }
 }

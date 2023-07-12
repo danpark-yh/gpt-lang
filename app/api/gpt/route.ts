@@ -13,7 +13,6 @@ export async function POST(
     apiKey: process.env.OPENAI_API_KEY,
   })
 
-  //   console.log({ request })
   const body = await request.json()
   const {
     userPrompt,
@@ -54,6 +53,15 @@ export async function POST(
   })
 
   const gptResult = chatCompletion.data.choices[0].message?.content || ""
+
+  // EARLY RETURN
+  if (userPromptResultOption === UserPromptResultOption.ANSWER_ONLY) {
+    return NextResponse.json({
+      answerResult: gptResult.trim(),
+      answerExplanation: "",
+    })
+  }
+
   let answerExplanation = ""
   const [answer, explanation] = gptResult.split("GPT LANG Explanation:")
 
