@@ -1,22 +1,20 @@
 "use client"
 import { useState, useCallback } from "react"
 import {
-  Button,
-  FormControl,
-  Select,
   Stack,
   Switch,
   TextField,
   Typography,
   MenuItem,
+  CircularProgress,
+  Paper,
 } from "@mui/material"
 import axios, { AxiosResponse } from "axios"
 import { GPTRequestBody, GPTResponse } from "@/common/type/api"
 import {
+  UserPromptLanguage,
   UserPromptResultOption,
   UserPromptType,
-  UserPromptInputLanguage,
-  UserPromptOutputLanguage,
 } from "@/common/type"
 import { useForm } from "react-hook-form"
 import { DevTool } from "@hookform/devtools"
@@ -26,125 +24,185 @@ type PromptForm = {
   userPrompt: string
   userPromptType: UserPromptType
   userPromptResultOption: boolean // UserPromptResultOption
-  userPromptInputLanguage: UserPromptInputLanguage
-  userPromptOutputLanguage: UserPromptOutputLanguage
+  userPromptExplanationLanguage: UserPromptLanguage
 }
 
 export default function Prompt() {
-  const { register, control, handleSubmit, watch, formState } =
-    useForm<PromptForm>({
-      defaultValues: {
-        userPrompt: "",
-        // userPromptType: false,
-        userPromptResultOption: true,
-        userPromptInputLanguage: UserPromptInputLanguage.ENGLISH,
-        userPromptOutputLanguage: UserPromptOutputLanguage.ENGLISH,
-      },
-    })
+  const { register, control, handleSubmit, watch } = useForm<PromptForm>({
+    defaultValues: {
+      userPrompt: "",
+      userPromptType: UserPromptType.MESSAGE,
+      userPromptResultOption: true,
+      userPromptExplanationLanguage: UserPromptLanguage.ENGLISH,
+    },
+  })
 
-  console.log({ formState })
-
+  /**
+   * Results
+   */
   const [answerResult, setAnswerResult] = useState("")
-  const [answerExplanation, setAnswerExplanation] = useState("")
+  const [explanationResult, setExplanationResult] = useState("")
+
+  /**
+   * Loading
+   */
+  const [loading, setLoading] = useState(false)
 
   const handlePrompt = useCallback(async (data: PromptForm) => {
-    // submit
-    const res = await axios.post<
-      any,
-      AxiosResponse<GPTResponse>,
-      GPTRequestBody
-    >("/api/gpt", {
-      userPrompt: data.userPrompt,
-      userPromptType: UserPromptType.MESSAGE,
-      userPromptResultOption: data.userPromptResultOption
-        ? UserPromptResultOption.ANSWER_AND_EXPLANATION
-        : UserPromptResultOption.ANSWER_ONLY,
-      userPromptInputLanguage: UserPromptInputLanguage.ENGLISH,
-      userPromptOutputLanguage: data.userPromptOutputLanguage,
-    })
-    console.log(res)
-    setAnswerResult(res.data.answerResult)
-    setAnswerExplanation(res.data.answerExplanation)
+    setLoading(true)
+    try {
+      const res = await axios.post<
+        any,
+        AxiosResponse<GPTResponse>,
+        GPTRequestBody
+      >("/api/gpt", {
+        userPrompt: data.userPrompt,
+        userPromptType: data.userPromptType,
+        // result option switch
+        userPromptResultOption: data.userPromptResultOption
+          ? UserPromptResultOption.ANSWER_AND_EXPLANATION
+          : UserPromptResultOption.ANSWER_ONLY,
+        userPromptExplanationLanguage: data.userPromptExplanationLanguage,
+      })
+      console.log(res)
+      setAnswerResult(res.data.answerResult)
+      setExplanationResult(res.data.answerExplanation)
+    } catch (err) {
+      // TODO: complete error handling
+      console.error(err)
+      let errorMessage = "There was an error processing your request."
+      if (err instanceof Error) {
+        errorMessage = err.message
+      }
+      alert(`Error!: ${errorMessage}`)
+    } finally {
+      setLoading(false)
+    }
   }, [])
 
   return (
-    <>
+    <div className="grid">
+      {/**
+       * SECTION 1. FORM == BEGIN ==
+       */}
       <form onSubmit={handleSubmit(handlePrompt)}>
-        <div className="container mx-10 m-auto">
-          <TextField multiline rows={5} fullWidth {...register("userPrompt")} />
-        </div>
-        <Stack direction="row" spacing={1} alignItems="center">
-          <Typography>교정만</Typography>
-          <Switch
-            defaultChecked
-            color="default"
-            {...register("userPromptResultOption")}
-          />
-          <Typography>교정+설명</Typography>
-          {watch().userPromptResultOption ? (
+        <Stack spacing={2} alignItems="center">
+          <div className="container mx-10 m-auto w-3/5	">
+            <TextField
+              multiline
+              rows={4}
+              fullWidth
+              {...register("userPrompt")}
+            />
+          </div>
+          <Stack direction="row" spacing={1} alignItems="center">
+            <Typography>타입</Typography>
             <TextField
               select
-              // fullWidth
-              // label="Select"
-              defaultValue={UserPromptInputLanguage.ENGLISH}
-              inputProps={register("userPromptOutputLanguage")}
+              defaultValue={UserPromptType.MESSAGE}
+              inputProps={register("userPromptType")}
               size="small"
-              // error={errors.currency}
-              // helperText={errors.currency?.message}
             >
-              <MenuItem value={UserPromptOutputLanguage.ENGLISH}>
-                <span className="flex justify-center gap-1">
-                  <GB className="w-4" /> English
-                </span>
-              </MenuItem>
-              <MenuItem value={UserPromptOutputLanguage.KOREAN}>
-                <span className="flex justify-center gap-1">
-                  <KR className="w-4" /> 한국어
-                </span>
-              </MenuItem>
+              <MenuItem value={UserPromptType.MESSAGE}>메시지</MenuItem>
+              <MenuItem value={UserPromptType.CONVERSATION}>대화</MenuItem>
+              <MenuItem value={UserPromptType.EMAIL}>이메일</MenuItem>
             </TextField>
-          ) : (
-            <></>
-          )}
+          </Stack>
+          <Stack direction="row" spacing={0} alignItems="center">
+            <Typography>교정만</Typography>
+            <Switch
+              defaultChecked
+              color="default"
+              {...register("userPromptResultOption")}
+            />
+            <div className="flex items-center gap-2">
+              <Typography>교정+설명</Typography>
+              {watch().userPromptResultOption ? (
+                <TextField
+                  select
+                  // fullWidth
+                  // label="Select"
+                  defaultValue={UserPromptLanguage.ENGLISH}
+                  inputProps={register("userPromptExplanationLanguage")}
+                  size="small"
+                  // error={errors.currency}
+                  // helperText={errors.currency?.message}
+                >
+                  <MenuItem value={UserPromptLanguage.ENGLISH}>
+                    <span className="flex justify-center gap-1">
+                      <GB className="w-4" /> English
+                    </span>
+                  </MenuItem>
+                  <MenuItem value={UserPromptLanguage.KOREAN}>
+                    <span className="flex justify-center gap-1">
+                      <KR className="w-4" /> 한국어
+                    </span>
+                  </MenuItem>
+                </TextField>
+              ) : (
+                <></>
+              )}
+            </div>
+          </Stack>
 
-          {/* <FormControl sx={{ p: 0, minWidth: 120 }} size="small">
-            <Select label="" {...register("userPromptOutputLanguage")}>
-              <MenuItem value={UserPromptOutputLanguage.ENGLISH}>
-                <span className="flex justify-center gap-1">
-                  <GB className="w-4" /> English
-                </span>
-              </MenuItem>
-              <MenuItem value={UserPromptOutputLanguage.userPromptResultOptionKOREAN}>
-                <span className="flex justify-center gap-1">
-                  <KR className="w-4" /> 한국어
-                </span>
-              </MenuItem>
-            </Select>
-          </FormControl> */}
+          <button
+            type="submit"
+            className="text-white bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-cyan-300 dark:focus:ring-cyan-800 shadow-lg shadow-cyan-500/50 dark:shadow-lg dark:shadow-cyan-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 cursor-pointer disabled:opacity-50"
+            disabled={!watch().userPrompt}
+          >
+            GPT 도와줘!
+          </button>
         </Stack>
-        {/* <Button onClick={() => handlePrompt(userPrompt)}>Submit</Button> */}
-        {/* <Button type="submit">SUBMIT</Button> */}
-        <button
-          type="submit"
-          className="text-white bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-cyan-300 dark:focus:ring-cyan-800 shadow-lg shadow-cyan-500/50 dark:shadow-lg dark:shadow-cyan-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
-        >
-          Submit
-        </button>
-
-        <h1 className="m-2 text-1xl font-extrabold text-gray-900 dark:text-white md:text-2xl lg:text-3xl">
-          <span className="text-transparent bg-clip-text bg-gradient-to-r to-emerald-600 from-sky-400">
-            교정 결과
-          </span>
-        </h1>
-        <div>{answerResult}</div>
-        <h1 className="m-2 text-1xl font-extrabold text-gray-900 dark:text-white md:text-2xl lg:text-3xl">
-          <span className="text-transparent bg-clip-text bg-gradient-to-r to-emerald-600 from-sky-400">
-            교정 설명
-          </span>
-        </h1>
-        <div className="whitespace-pre-wrap">{answerExplanation}</div>
       </form>
+      {/**
+       * SECTION 1. FORM == END ==
+       */}
+
+      {/**
+       * SECTION 2. ANSWER == BEGIN ==
+       */}
+      <div className="m-10">
+        {
+          // Case 1. Loading
+          loading ? (
+            <div className="flex justify-center">
+              <CircularProgress />
+            </div>
+          ) : // Case 2. Result returned
+          answerResult || explanationResult ? (
+            <Stack spacing={3}>
+              <Paper elevation={3} className="p-5">
+                <h1 className="m-2 text-1xl font-extrabold text-gray-900 dark:text-white md:text-2xl lg:text-3xl">
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r to-emerald-600 from-sky-400">
+                    교정 결과
+                  </span>
+                </h1>
+                <div>{answerResult}</div>
+              </Paper>
+              {explanationResult ? (
+                <Paper elevation={3} className="p-5">
+                  <h1 className="m-2 text-1xl font-extrabold text-gray-900 dark:text-white md:text-2xl lg:text-3xl">
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r to-emerald-600 from-sky-400">
+                      교정 설명
+                    </span>
+                  </h1>
+                  <div className="whitespace-pre-wrap">{explanationResult}</div>
+                </Paper>
+              ) : (
+                <></>
+              )}
+            </Stack>
+          ) : (
+            // Case 3. No result yet
+            <></>
+          )
+        }
+      </div>
+      {/**
+       * SECTION 2. ANSWER == END ==
+       */}
+
       <DevTool control={control} placement="top-right" />
-    </>
+    </div>
   )
 }
