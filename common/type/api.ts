@@ -1,16 +1,10 @@
-import {
-  UserPromptInputLanguage,
-  UserPromptOutputLanguage,
-  UserPromptResultOption,
-  UserPromptType,
-} from "."
+import { UserPromptLanguage, UserPromptResultOption, UserPromptType } from "."
 
 export type GPTRequestBody = {
   userPrompt: string
   userPromptType: UserPromptType
   userPromptResultOption: UserPromptResultOption
-  userPromptInputLanguage: UserPromptInputLanguage
-  userPromptOutputLanguage: UserPromptOutputLanguage
+  userPromptExplanationLanguage: UserPromptLanguage
 }
 
 export type GPTResponse = {

@@ -1,7 +1,7 @@
 export enum UserPromptType {
-  EMAIL = "Email",
   MESSAGE = "Message",
   CONVERSATION = "Conversation",
+  EMAIL = "Email",
 }
 
 export enum UserPromptResultOption {
@@ -9,11 +9,7 @@ export enum UserPromptResultOption {
   ANSWER_AND_EXPLANATION = "AnswerAndExplanation",
 }
 
-export enum UserPromptInputLanguage {
-  ENGLISH = "English",
-  KOREAN = "Korean",
-}
-export enum UserPromptOutputLanguage {
+export enum UserPromptLanguage {
   ENGLISH = "English",
   KOREAN = "Korean",
 }
