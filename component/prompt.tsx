@@ -8,6 +8,8 @@ import {
   MenuItem,
   CircularProgress,
   Paper,
+  ToggleButton,
+  Tooltip,
 } from "@mui/material"
 import axios, { AxiosResponse } from "axios"
 import { GPTRequestBody, GPTResponse } from "@/common/type/api"
@@ -19,6 +21,10 @@ import {
 import { useForm } from "react-hook-form"
 import { DevTool } from "@hookform/devtools"
 import { KR, GB } from "country-flag-icons/react/3x2"
+import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued"
+import CompareIcon from "@mui/icons-material/Compare"
+import ContentPasteIcon from "@mui/icons-material/ContentPaste"
+import { useSnackbar } from "notistack"
 
 type PromptForm = {
   userPrompt: string
@@ -28,6 +34,8 @@ type PromptForm = {
 }
 
 export default function Prompt() {
+  const { enqueueSnackbar } = useSnackbar()
+
   const { register, control, handleSubmit, watch } = useForm<PromptForm>({
     defaultValues: {
       userPrompt: "",
@@ -36,6 +44,9 @@ export default function Prompt() {
       userPromptExplanationLanguage: UserPromptLanguage.ENGLISH,
     },
   })
+
+  const [finalUserPrompt, setFinalUserPrompt] = useState("")
+  const [compareMode, setCompareMode] = useState(false)
 
   /**
    * Results
@@ -51,6 +62,7 @@ export default function Prompt() {
   const handlePrompt = useCallback(async (data: PromptForm) => {
     setLoading(true)
     try {
+      setFinalUserPrompt(data.userPrompt)
       const res = await axios.post<
         any,
         AxiosResponse<GPTResponse>,
@@ -176,12 +188,50 @@ export default function Prompt() {
           answerResult || explanationResult ? (
             <Stack spacing={3}>
               <Paper elevation={3} className="p-5">
-                <h1 className="m-2 text-1xl font-extrabold text-gray-900 dark:text-white md:text-2xl lg:text-3xl">
-                  <span className="text-transparent bg-clip-text bg-gradient-to-r to-emerald-600 from-sky-400">
-                    교정 결과
-                  </span>
-                </h1>
-                <div>{answerResult}</div>
+                <div className="flex items-center gap-1">
+                  <h1 className="m-2 text-1xl font-extrabold text-gray-900 dark:text-white md:text-2xl lg:text-3xl">
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r to-emerald-600 from-sky-400">
+                      교정 결과
+                    </span>
+                  </h1>
+                  <Tooltip title="결과 복사">
+                    <ToggleButton
+                      value="check"
+                      size="small"
+                      onClick={() => {
+                        navigator.clipboard.writeText(answerResult)
+                        enqueueSnackbar("클립보드에 복사 되었습니다.", {
+                          variant: "success",
+                        })
+                      }}
+                    >
+                      <ContentPasteIcon />
+                    </ToggleButton>
+                  </Tooltip>
+                  <Tooltip title="결과 비교">
+                    <ToggleButton
+                      value="check"
+                      selected={compareMode}
+                      onChange={() => {
+                        setCompareMode(!compareMode)
+                      }}
+                      size="small"
+                    >
+                      <CompareIcon />
+                    </ToggleButton>
+                  </Tooltip>
+                </div>
+                {compareMode ? (
+                  <ReactDiffViewer
+                    newValue={answerResult}
+                    oldValue={finalUserPrompt}
+                    compareMethod={DiffMethod.WORDS}
+                    splitView={false}
+                    hideLineNumbers={true}
+                  />
+                ) : (
+                  <div>{answerResult}</div>
+                )}
               </Paper>
               {explanationResult ? (
                 <Paper elevation={3} className="p-5">
