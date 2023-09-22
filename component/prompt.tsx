@@ -24,7 +24,7 @@ import { KR, GB } from "country-flag-icons/react/3x2"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued"
 import CompareIcon from "@mui/icons-material/Compare"
 import ContentPasteIcon from "@mui/icons-material/ContentPaste"
-import { useSnackbar } from "notistack"
+import { SnackbarProvider, useSnackbar } from "notistack"
 
 type PromptForm = {
   userPrompt: string
@@ -94,6 +94,7 @@ export default function Prompt() {
 
   return (
     <div className="grid">
+      <SnackbarProvider />
       {/**
        * SECTION 1. FORM == BEGIN ==
        */}
