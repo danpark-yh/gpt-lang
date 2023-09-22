@@ -1,7 +1,7 @@
 export enum UserPromptType {
   MESSAGE = "Message",
   CONVERSATION = "Conversation",
-  EMAIL = "Email",
+  // EMAIL = "Email",
 }
 
 export enum UserPromptResultOption {

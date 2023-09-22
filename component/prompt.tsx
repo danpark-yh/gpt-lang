@@ -105,7 +105,7 @@ export default function Prompt() {
             >
               <MenuItem value={UserPromptType.MESSAGE}>메시지</MenuItem>
               <MenuItem value={UserPromptType.CONVERSATION}>대화</MenuItem>
-              <MenuItem value={UserPromptType.EMAIL}>이메일</MenuItem>
+              {/* <MenuItem value={UserPromptType.EMAIL}>이메일</MenuItem> */}
             </TextField>
           </Stack>
           <Stack direction="row" spacing={0} alignItems="center">
