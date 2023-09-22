@@ -37,50 +37,90 @@ export async function POST(
     userPromptExplanationLanguage,
   } = body
 
-  console.log({ userPrompt })
-  console.log({ userPromptType })
-  console.log({ userPromptResultOption })
-  console.log({ userPromptExplanationLanguage })
+  // console.log({ userPrompt })
+  // console.log({ userPromptType })
+  // console.log({ userPromptResultOption })
+  // console.log({ userPromptExplanationLanguage })
 
   const openai = new OpenAIApi(configuration)
 
-  let userChatMessage = `Please proofread for this ${userPromptType}`
-  if (
+  const TEXT_REFERENCE = `'${userPromptType.toUpperCase()} TEXT'`
+  const EDITED_MESSAGE = "Edited message:"
+  const EDIT_EXPLANATION = "Edit explanation:"
+
+  let userChatMessage = `Please proofread below ${TEXT_REFERENCE}`
+
+  /*********************************************
+   * STEP 1. PROOFREAD TEXT
+   *********************************************/
+  if (userPromptResultOption === UserPromptResultOption.ANSWER_ONLY) {
+    userChatMessage += ` and return revised ${TEXT_REFERENCE} starting with "${EDITED_MESSAGE}"`
+  } else if (
     userPromptResultOption === UserPromptResultOption.ANSWER_AND_EXPLANATION
   ) {
-    userChatMessage += ` and explain why. Please start the explanation of why you made change with 'GPT LANG Explanation:'`
+    userChatMessage += ` and explain why.
+Please follow below instructions.
+------------------------
+1. Must return revised ${TEXT_REFERENCE} starting with "${EDITED_MESSAGE}" 
+2. Explain why you made the change starting with "${EDIT_EXPLANATION}" with bullet point format.
+3. If you don't make any changes, please say "No need to change"`
   }
 
-  userChatMessage += `------\n${userPrompt}`
+  userChatMessage += `\n------------------------\n${TEXT_REFERENCE}: ${userPrompt}`
 
   console.log({ userChatMessage })
+
+  // GPT REQUEST
   const chatCompletion = await openai.createChatCompletion({
     model: "gpt-3.5-turbo",
     // model: "gpt-4",
     messages: [
-      { role: "system", content: "You are a professional English expert." },
+      {
+        role: "system",
+        content: "You are a professional English proofreader.",
+      },
       {
         role: "user",
         content: userChatMessage,
       },
     ],
+    temperature: 0.2,
   })
 
   const gptResult = chatCompletion.data.choices[0].message?.content || ""
 
-  // EARLY RETURN
+  console.log({ gptResult })
+
+  /*********************************************************
+   * EARLY RETURN = ANSWER ONLY = NO EXPLANATION
+   *********************************************************/
+  let answerResult = gptResult
   if (userPromptResultOption === UserPromptResultOption.ANSWER_ONLY) {
+    // Remove EDITED_MESSAGE if exists
+    if (gptResult.startsWith(EDITED_MESSAGE)) {
+      answerResult = gptResult.replace(EDITED_MESSAGE, "")
+    }
     return NextResponse.json({
-      answerResult: gptResult.trim(),
-      answerExplanation: "",
+      answerResult,
+      answerExplanation: "", // nothing to explain
     })
   }
 
   let answerExplanation = ""
-  const [answer, explanation] = gptResult.split("GPT LANG Explanation:")
 
-  answerExplanation = explanation.trim()
+  if (gptResult.startsWith(EDITED_MESSAGE)) {
+    answerResult = gptResult.replace(EDITED_MESSAGE, "")
+  }
 
+  if (answerResult.includes(EDIT_EXPLANATION)) {
+    const [answer, explanation] = answerResult.split(EDIT_EXPLANATION)
+    answerResult = answer.trim()
+    answerExplanation = explanation.trim()
+  }
+
+  /****************************************************
+   * STEP 2. TRANSLATE EXPLANATION
+   ****************************************************/
   if (
     userPromptExplanationLanguage !== UserPromptLanguage.ENGLISH &&
     answerExplanation
@@ -98,16 +138,14 @@ export async function POST(
           content: `The text is the explanation of what have changed to fix English grammars. Please translate this text to ${userPromptExplanationLanguage}. Please keep the phrase, sentence and words wraps with "" in English. ----${answerExplanation}`,
         },
       ],
+      temperature: 0.2,
     })
     answerExplanation =
       chatCompletionTranslation.data.choices[0].message?.content || ""
   }
 
-  console.log(answer.trim())
-  console.log("====================")
-  console.log(answerExplanation)
   return NextResponse.json({
-    answerResult: answer.trim(),
+    answerResult,
     answerExplanation,
   })
 }
