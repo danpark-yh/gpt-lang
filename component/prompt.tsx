@@ -103,8 +103,12 @@ export default function Prompt() {
               inputProps={register("userPromptType")}
               size="small"
             >
-              <MenuItem value={UserPromptType.MESSAGE}>메시지</MenuItem>
-              <MenuItem value={UserPromptType.CONVERSATION}>대화</MenuItem>
+              <MenuItem value={UserPromptType.MESSAGE}>
+                메시지 (Message)
+              </MenuItem>
+              <MenuItem value={UserPromptType.CONVERSATION}>
+                대화 (Conversation)
+              </MenuItem>
               {/* <MenuItem value={UserPromptType.EMAIL}>이메일</MenuItem> */}
             </TextField>
           </Stack>
