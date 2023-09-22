@@ -24,7 +24,7 @@ import { KR, GB } from "country-flag-icons/react/3x2"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued"
 import CompareIcon from "@mui/icons-material/Compare"
 import ContentPasteIcon from "@mui/icons-material/ContentPaste"
-import { SnackbarProvider, useSnackbar } from "notistack"
+import { SnackbarProvider, enqueueSnackbar } from "notistack"
 
 type PromptForm = {
   userPrompt: string
@@ -34,8 +34,6 @@ type PromptForm = {
 }
 
 export default function Prompt() {
-  const { enqueueSnackbar } = useSnackbar()
-
   const { register, control, handleSubmit, watch } = useForm<PromptForm>({
     defaultValues: {
       userPrompt: "",
