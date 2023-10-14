@@ -9,7 +9,7 @@ export enum UserPromptResultOption {
   ANSWER_AND_EXPLANATION = "AnswerAndExplanation",
 }
 
-export enum UserPromptLanguage {
+export enum Language {
   ENGLISH = "English",
   KOREAN = "Korean",
 }

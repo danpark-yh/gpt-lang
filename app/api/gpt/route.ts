@@ -1,4 +1,5 @@
-import { UserPromptLanguage, UserPromptResultOption } from "@/common/type"
+import { getWordCount } from "@/common/function/helper"
+import { UserPromptResultOption } from "@/common/type"
 import { GPTRequestBody, GPTResponse } from "@/common/type/api"
 import { NextResponse } from "next/server"
 import { Configuration, OpenAIApi } from "openai"
@@ -30,12 +31,7 @@ export async function POST(
   })
 
   const body = await request.json()
-  const {
-    userPrompt,
-    userPromptType,
-    userPromptResultOption,
-    userPromptExplanationLanguage,
-  } = body
+  const { userPrompt, userPromptType, userPromptResultOption } = body
 
   // console.log({ userPrompt })
   // console.log({ userPromptType })
@@ -44,14 +40,21 @@ export async function POST(
 
   const openai = new OpenAIApi(configuration)
 
+  console.log(
+    `[GPT Proofread] ==== BEGIN ==== ${getWordCount(
+      userPrompt
+    )} words. / type: ${userPromptType} / resultOption: ${userPromptResultOption}`
+  )
+
   const TEXT_REFERENCE = `'${userPromptType.toUpperCase()} TEXT'`
   const EDITED_MESSAGE = "Edited message:"
   const EDIT_EXPLANATION = "Edit explanation:"
+  const NO_NEED_TO_CHANGE = "No need to change"
 
   let userChatMessage = `Please proofread below ${TEXT_REFERENCE}`
 
   /*********************************************
-   * STEP 1. PROOFREAD TEXT
+   * PROOFREAD TEXT (+ EXPLANATION)
    *********************************************/
   if (userPromptResultOption === UserPromptResultOption.ANSWER_ONLY) {
     userChatMessage += ` and return revised ${TEXT_REFERENCE} starting with "${EDITED_MESSAGE}"`
@@ -63,7 +66,7 @@ Please follow below instructions.
 ------------------------
 1. Must return revised ${TEXT_REFERENCE} starting with "${EDITED_MESSAGE}" 
 2. Explain why you made the change starting with "${EDIT_EXPLANATION}" with bullet point format.
-3. If you don't make any changes, please say "No need to change"`
+3. If you don't make any changes at all, please say "${NO_NEED_TO_CHANGE}"`
   }
 
   userChatMessage += `\n------------------------\n${TEXT_REFERENCE}: ${userPrompt}`
@@ -118,31 +121,7 @@ Please follow below instructions.
     answerExplanation = explanation.trim()
   }
 
-  /****************************************************
-   * STEP 2. TRANSLATE EXPLANATION
-   ****************************************************/
-  if (
-    userPromptExplanationLanguage !== UserPromptLanguage.ENGLISH &&
-    answerExplanation
-  ) {
-    console.log("TRANSLATION....")
-    const chatCompletionTranslation = await openai.createChatCompletion({
-      model: "gpt-3.5-turbo",
-      messages: [
-        {
-          role: "system",
-          content: `You are a professional translator from English to ${userPromptExplanationLanguage}`,
-        },
-        {
-          role: "user",
-          content: `The text is the explanation of what have changed to fix English grammars. Please translate this text to ${userPromptExplanationLanguage}. Please keep the phrase, sentence and words wraps with "" in English. ----${answerExplanation}`,
-        },
-      ],
-      temperature: 0.2,
-    })
-    answerExplanation =
-      chatCompletionTranslation.data.choices[0].message?.content || ""
-  }
+  console.log(`[GPT Proofread] ==== END ====`)
 
   return NextResponse.json({
     answerResult,

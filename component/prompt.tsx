@@ -13,12 +13,13 @@ import {
   Container,
 } from "@mui/material"
 import axios, { AxiosResponse } from "axios"
-import { GPTRequestBody, GPTResponse } from "@/common/type/api"
 import {
-  UserPromptLanguage,
-  UserPromptResultOption,
-  UserPromptType,
-} from "@/common/type"
+  GPTRequestBody,
+  GPTResponse,
+  TranslationRequestBody,
+  TranslationResponse,
+} from "@/common/type/api"
+import { Language, UserPromptResultOption, UserPromptType } from "@/common/type"
 import { useForm } from "react-hook-form"
 import { DevTool } from "@hookform/devtools"
 import { KR, GB } from "country-flag-icons/react/3x2"
@@ -31,7 +32,7 @@ type PromptForm = {
   userPrompt: string
   userPromptType: UserPromptType
   userPromptResultOption: boolean // UserPromptResultOption
-  userPromptExplanationLanguage: UserPromptLanguage
+  userPromptExplanationLanguage: Language
 }
 
 export default function Prompt() {
@@ -40,7 +41,7 @@ export default function Prompt() {
       userPrompt: "",
       userPromptType: UserPromptType.MESSAGE,
       userPromptResultOption: true,
-      userPromptExplanationLanguage: UserPromptLanguage.ENGLISH,
+      userPromptExplanationLanguage: Language.ENGLISH,
     },
   })
 
@@ -62,7 +63,11 @@ export default function Prompt() {
     setLoading(true)
     try {
       setFinalUserPrompt(data.userPrompt)
-      const res = await axios.post<
+
+      /**
+       * STEP 1. GPT Proofread
+       */
+      const gptRes = await axios.post<
         any,
         AxiosResponse<GPTResponse>,
         GPTRequestBody
@@ -73,11 +78,34 @@ export default function Prompt() {
         userPromptResultOption: data.userPromptResultOption
           ? UserPromptResultOption.ANSWER_AND_EXPLANATION
           : UserPromptResultOption.ANSWER_ONLY,
-        userPromptExplanationLanguage: data.userPromptExplanationLanguage,
       })
-      console.log(res)
-      setAnswerResult(res.data.answerResult)
-      setExplanationResult(res.data.answerExplanation)
+      // console.log(gptRes)
+
+      /**
+       * Early Return - No translation
+       */
+      setAnswerResult(gptRes.data.answerResult)
+      if (data.userPromptExplanationLanguage === Language.ENGLISH) {
+        setExplanationResult(gptRes.data.answerExplanation)
+        return
+      }
+
+      /**
+       * STEP 2. Translation from English to another language (e.g. Korean)
+       */
+      const translationRes = await axios.post<
+        any,
+        AxiosResponse<TranslationResponse>,
+        TranslationRequestBody
+      >("/api/translation", {
+        text: gptRes.data.answerExplanation,
+        sourceLanguage: Language.ENGLISH,
+        targetLanguage: data.userPromptExplanationLanguage,
+      })
+
+      setExplanationResult(translationRes.data.translatedText)
+      // REVIEW: may need to implement switch from Eng <-> Korean result?
+      // setExplanationDiffLang(translationRes.data.translatedText)
     } catch (err) {
       // TODO: complete error handling
       console.error(err)
@@ -138,18 +166,18 @@ export default function Prompt() {
                   select
                   // fullWidth
                   // label="Select"
-                  defaultValue={UserPromptLanguage.ENGLISH}
+                  defaultValue={Language.ENGLISH}
                   inputProps={register("userPromptExplanationLanguage")}
                   size="small"
                   // error={errors.currency}
                   // helperText={errors.currency?.message}
                 >
-                  <MenuItem value={UserPromptLanguage.ENGLISH}>
+                  <MenuItem value={Language.ENGLISH}>
                     <span className="flex justify-center gap-1">
                       <GB className="w-4" /> English
                     </span>
                   </MenuItem>
-                  <MenuItem value={UserPromptLanguage.KOREAN}>
+                  <MenuItem value={Language.KOREAN}>
                     <span className="flex justify-center gap-1">
                       <KR className="w-4" /> 한국어
                     </span>
@@ -235,11 +263,13 @@ export default function Prompt() {
               </Paper>
               {explanationResult ? (
                 <Paper elevation={3} className="p-5">
-                  <h1 className="m-2 text-1xl font-extrabold text-gray-900 dark:text-white md:text-xl lg:text-2xl">
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r to-emerald-600 from-sky-400">
-                      교정 설명
-                    </span>
-                  </h1>
+                  <div className="flex items-center gap-1">
+                    <h1 className="m-2 text-1xl font-extrabold text-gray-900 dark:text-white md:text-xl lg:text-2xl">
+                      <span className="text-transparent bg-clip-text bg-gradient-to-r to-emerald-600 from-sky-400">
+                        교정 설명
+                      </span>
+                    </h1>
+                  </div>
                   <div className="whitespace-pre-wrap">{explanationResult}</div>
                 </Paper>
               ) : (
