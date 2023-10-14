@@ -205,7 +205,7 @@ export default function Prompt() {
       {/**
        * SECTION 2. ANSWER == BEGIN ==
        */}
-      <div className="m-10">
+      <div className="m-1 md: m-4 lg:m-10">
         {
           // Case 1. Loading
           loading ? (
