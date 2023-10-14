@@ -10,6 +10,7 @@ import {
   Paper,
   ToggleButton,
   Tooltip,
+  Container,
 } from "@mui/material"
 import axios, { AxiosResponse } from "axios"
 import { GPTRequestBody, GPTResponse } from "@/common/type/api"
@@ -98,14 +99,14 @@ export default function Prompt() {
        */}
       <form onSubmit={handleSubmit(handlePrompt)}>
         <Stack spacing={2} alignItems="center">
-          <div className="container mx-10 m-auto w-3/5	">
+          <Container style={{ maxWidth: "1200px" }}>
             <TextField
               multiline
-              rows={4}
+              rows={5}
               fullWidth
               {...register("userPrompt")}
             />
-          </div>
+          </Container>
           <Stack direction="row" spacing={1} alignItems="center">
             <Typography>타입</Typography>
             <TextField
@@ -188,7 +189,7 @@ export default function Prompt() {
             <Stack spacing={3}>
               <Paper elevation={3} className="p-5">
                 <div className="flex items-center gap-1">
-                  <h1 className="m-2 text-1xl font-extrabold text-gray-900 dark:text-white md:text-2xl lg:text-3xl">
+                  <h1 className="m-2 text-1xl font-extrabold text-gray-900 dark:text-white md:text-xl lg:text-2xl">
                     <span className="text-transparent bg-clip-text bg-gradient-to-r to-emerald-600 from-sky-400">
                       교정 결과
                     </span>
@@ -229,12 +230,12 @@ export default function Prompt() {
                     hideLineNumbers={true}
                   />
                 ) : (
-                  <div>{answerResult}</div>
+                  <div className="whitespace-pre-wrap">{answerResult}</div>
                 )}
               </Paper>
               {explanationResult ? (
                 <Paper elevation={3} className="p-5">
-                  <h1 className="m-2 text-1xl font-extrabold text-gray-900 dark:text-white md:text-2xl lg:text-3xl">
+                  <h1 className="m-2 text-1xl font-extrabold text-gray-900 dark:text-white md:text-xl lg:text-2xl">
                     <span className="text-transparent bg-clip-text bg-gradient-to-r to-emerald-600 from-sky-400">
                       교정 설명
                     </span>
