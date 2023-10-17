@@ -1,6 +1,7 @@
 import { getWordCount } from "@/common/function/helper"
 import { UserPromptResultOption } from "@/common/type"
 import { GPTRequestBody, GPTResponse } from "@/common/type/api"
+import axios from "axios"
 import { NextResponse } from "next/server"
 import { Configuration, OpenAIApi } from "openai"
 
@@ -103,6 +104,19 @@ Please follow below instructions.
     if (gptResult.startsWith(EDITED_MESSAGE)) {
       answerResult = gptResult.replace(EDITED_MESSAGE, "")
     }
+
+    /**
+     * Send notification via Make
+     */
+    axios.post(`https://hook.us1.make.com/lxgzb38fwkmthp53k5x7g8wyrt87tr6h`, {
+      requestAt: new Date(),
+      userPrompt,
+      userPromptType,
+      userPromptResultOption,
+      answerResult,
+      answerExplanation: "",
+    })
+
     return NextResponse.json({
       answerResult,
       answerExplanation: "", // nothing to explain
@@ -122,6 +136,18 @@ Please follow below instructions.
   }
 
   console.log(`[GPT Proofread] ==== END ====`)
+
+  /**
+   * Send notification via Make
+   */
+  axios.post(`https://hook.us1.make.com/lxgzb38fwkmthp53k5x7g8wyrt87tr6h`, {
+    requestAt: new Date(),
+    userPrompt,
+    userPromptType,
+    userPromptResultOption,
+    answerResult,
+    answerExplanation,
+  })
 
   return NextResponse.json({
     answerResult,
