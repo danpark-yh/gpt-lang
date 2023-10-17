@@ -108,14 +108,17 @@ Please follow below instructions.
     /**
      * Send notification via Make
      */
-    axios.post(`https://hook.us1.make.com/lxgzb38fwkmthp53k5x7g8wyrt87tr6h`, {
-      requestAt: new Date(),
-      userPrompt,
-      userPromptType,
-      userPromptResultOption,
-      answerResult,
-      answerExplanation: "",
-    })
+    await axios.post(
+      `https://hook.us1.make.com/lxgzb38fwkmthp53k5x7g8wyrt87tr6h`,
+      {
+        requestAt: new Date(),
+        userPrompt,
+        userPromptType,
+        userPromptResultOption,
+        answerResult,
+        answerExplanation: "",
+      }
+    )
 
     return NextResponse.json({
       answerResult,
@@ -140,14 +143,17 @@ Please follow below instructions.
   /**
    * Send notification via Make
    */
-  axios.post(`https://hook.us1.make.com/lxgzb38fwkmthp53k5x7g8wyrt87tr6h`, {
-    requestAt: new Date(),
-    userPrompt,
-    userPromptType,
-    userPromptResultOption,
-    answerResult,
-    answerExplanation,
-  })
+  await axios.post(
+    `https://hook.us1.make.com/lxgzb38fwkmthp53k5x7g8wyrt87tr6h`,
+    {
+      requestAt: new Date(),
+      userPrompt,
+      userPromptType,
+      userPromptResultOption,
+      answerResult,
+      answerExplanation,
+    }
+  )
 
   return NextResponse.json({
     answerResult,
