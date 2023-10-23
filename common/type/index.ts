@@ -13,3 +13,9 @@ export enum Language {
   ENGLISH = "English",
   KOREAN = "Korean",
 }
+
+export enum EnglishType {
+  AMERICAN = "American",
+  BRITISH = "British",
+  AUSTRALIAN = "Australian",
+}

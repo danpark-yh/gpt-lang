@@ -1,9 +1,17 @@
-import { Language, UserPromptResultOption, UserPromptType } from "."
+import {
+  EnglishType,
+  Language,
+  UserPromptResultOption,
+  UserPromptType,
+} from "."
 
 export type GPTRequestBody = {
   userPrompt: string
   userPromptType: UserPromptType
   userPromptResultOption: UserPromptResultOption
+  advancedOptions: {
+    englishType: EnglishType
+  }
 }
 
 export type GPTResponse = {

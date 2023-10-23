@@ -36,7 +36,7 @@ export async function POST(
       },
       {
         role: "user",
-        content: `The text is the explanation of what have changed to fix ${sourceLanguage} grammars. Please translate this 'SOURCE TEXT' to ${targetLanguage}. Do not change the ${sourceLanguage} phrase, sentence and words wraps with "". Please keep the bullet point format style.
+        content: `The text is the explanation of what have changed to fix ${sourceLanguage} grammars. Please translate this 'SOURCE TEXT' to ${targetLanguage}. Never change the ${sourceLanguage} phrase, sentence and words wraps with double quotes(""). Please keep the bullet point format style.
         -----------------
         'SOURCE TEXT': ${text}`,
       },

@@ -19,13 +19,20 @@ import {
   TranslationRequestBody,
   TranslationResponse,
 } from "@/common/type/api"
-import { Language, UserPromptResultOption, UserPromptType } from "@/common/type"
+import {
+  EnglishType,
+  Language,
+  UserPromptResultOption,
+  UserPromptType,
+} from "@/common/type"
 import { useForm } from "react-hook-form"
 import { DevTool } from "@hookform/devtools"
-import { KR, GB } from "country-flag-icons/react/3x2"
+import { KR, GB, AU, US } from "country-flag-icons/react/3x2"
 import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued"
 import CompareIcon from "@mui/icons-material/Compare"
 import ContentPasteIcon from "@mui/icons-material/ContentPaste"
+import KeyboardArrowDownIcon from "@mui/icons-material/KeyboardArrowDown"
+import KeyboardArrowRightIcon from "@mui/icons-material/KeyboardArrowRight"
 import { SnackbarProvider, enqueueSnackbar } from "notistack"
 import { MAX_PROMPT_INPUT_CHARACTERS } from "@/common/constant"
 
@@ -34,6 +41,7 @@ type PromptForm = {
   userPromptType: UserPromptType
   userPromptResultOption: boolean // UserPromptResultOption
   userPromptExplanationLanguage: Language
+  advancedEnglishType: EnglishType
 }
 
 export default function Prompt() {
@@ -43,6 +51,7 @@ export default function Prompt() {
       userPromptType: UserPromptType.MESSAGE,
       userPromptResultOption: true,
       userPromptExplanationLanguage: Language.ENGLISH,
+      advancedEnglishType: EnglishType.AUSTRALIAN,
     },
   })
 
@@ -61,6 +70,11 @@ export default function Prompt() {
   const userPromptTextCount = watch().userPrompt.length
   const isExceededMaxTextCount =
     userPromptTextCount > MAX_PROMPT_INPUT_CHARACTERS
+
+  /**
+   * Advanced option
+   */
+  const [openAdvancedOption, setOpenAdvancedOption] = useState(false)
 
   /**
    * Loading
@@ -86,6 +100,9 @@ export default function Prompt() {
         userPromptResultOption: data.userPromptResultOption
           ? UserPromptResultOption.ANSWER_AND_EXPLANATION
           : UserPromptResultOption.ANSWER_ONLY,
+        advancedOptions: {
+          englishType: data.advancedEnglishType,
+        },
       })
       // console.log(gptRes)
 
@@ -213,13 +230,56 @@ export default function Prompt() {
               )}
             </div>
           </Stack>
+          <div>
+            <div
+              className="flex justify-center items-center	cursor-pointer text-center text-sm"
+              onClick={() => setOpenAdvancedOption((prev) => !prev)}
+            >
+              {openAdvancedOption ? (
+                <KeyboardArrowRightIcon />
+              ) : (
+                <KeyboardArrowDownIcon />
+              )}{" "}
+              Advanced Option
+            </div>
+            {openAdvancedOption ? (
+              <Stack direction="row" spacing={1} alignItems="center">
+                <Typography>교정 영어 타입</Typography>
+                <TextField
+                  select
+                  defaultValue={EnglishType.AUSTRALIAN}
+                  inputProps={register("advancedEnglishType")}
+                  size="small"
+                >
+                  <MenuItem value={EnglishType.AUSTRALIAN}>
+                    <span className="flex justify-center gap-1">
+                      <AU className="w-4" /> 호주식 (Australian)
+                    </span>
+                  </MenuItem>
+                  <MenuItem value={EnglishType.AMERICAN}>
+                    <span className="flex justify-center gap-1">
+                      <US className="w-4" /> 미국식 (American)
+                    </span>
+                  </MenuItem>
+                  <MenuItem value={EnglishType.BRITISH}>
+                    <span className="flex justify-center gap-1">
+                      <GB className="w-4" />
+                      영국식 (British)
+                    </span>
+                  </MenuItem>
+                </TextField>
+              </Stack>
+            ) : (
+              <></>
+            )}
+          </div>
 
           <button
             type="submit"
             className="text-white bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-cyan-300 dark:focus:ring-cyan-800 shadow-lg shadow-cyan-500/50 dark:shadow-lg dark:shadow-cyan-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 cursor-pointer disabled:opacity-50"
             disabled={!watch().userPrompt || isExceededMaxTextCount}
           >
-            GPT 도와줘!
+            GPT 교정 시작
           </button>
         </Stack>
       </form>

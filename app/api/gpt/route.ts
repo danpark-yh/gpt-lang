@@ -33,7 +33,13 @@ export async function POST(
     })
 
     const body = await request.json()
-    const { userPrompt, userPromptType, userPromptResultOption } = body
+    const {
+      userPrompt,
+      userPromptType,
+      userPromptResultOption,
+      advancedOptions,
+    } = body
+    const { englishType } = advancedOptions
 
     // console.log({ userPrompt })
     // console.log({ userPromptType })
@@ -53,7 +59,7 @@ export async function POST(
     const EDIT_EXPLANATION = "Edit explanation:"
     const NO_NEED_TO_CHANGE = "No need to change"
 
-    let userChatMessage = `Please proofread below ${TEXT_REFERENCE}`
+    let userChatMessage = `Please professionally proofread below ${TEXT_REFERENCE} in ${englishType} English.`
 
     /*********************************************
      * PROOFREAD TEXT (+ EXPLANATION)
