@@ -27,6 +27,7 @@ import ReactDiffViewer, { DiffMethod } from "react-diff-viewer-continued"
 import CompareIcon from "@mui/icons-material/Compare"
 import ContentPasteIcon from "@mui/icons-material/ContentPaste"
 import { SnackbarProvider, enqueueSnackbar } from "notistack"
+import { MAX_PROMPT_INPUT_CHARACTERS } from "@/common/constant"
 
 type PromptForm = {
   userPrompt: string
@@ -53,6 +54,13 @@ export default function Prompt() {
    */
   const [answerResult, setAnswerResult] = useState("")
   const [explanationResult, setExplanationResult] = useState("")
+
+  /**
+   * User Prompt Text
+   */
+  const userPromptTextCount = watch().userPrompt.length
+  const isExceededMaxTextCount =
+    userPromptTextCount > MAX_PROMPT_INPUT_CHARACTERS
 
   /**
    * Loading
@@ -134,6 +142,23 @@ export default function Prompt() {
               fullWidth
               {...register("userPrompt")}
             />
+            {
+              /**
+               * Show text count only when it exceeds the limit
+               */
+              isExceededMaxTextCount ? (
+                <div className="text-right">
+                  <Typography variant="caption">
+                    <span className="text-red-600  font-bold">
+                      {userPromptTextCount}
+                    </span>
+                    /{MAX_PROMPT_INPUT_CHARACTERS}
+                  </Typography>
+                </div>
+              ) : (
+                <></>
+              )
+            }
           </Container>
           <Stack direction="row" spacing={1} alignItems="center">
             <Typography>타입</Typography>
@@ -192,7 +217,7 @@ export default function Prompt() {
           <button
             type="submit"
             className="text-white bg-gradient-to-r from-cyan-400 via-cyan-500 to-cyan-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-cyan-300 dark:focus:ring-cyan-800 shadow-lg shadow-cyan-500/50 dark:shadow-lg dark:shadow-cyan-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 cursor-pointer disabled:opacity-50"
-            disabled={!watch().userPrompt}
+            disabled={!watch().userPrompt || isExceededMaxTextCount}
           >
             GPT 도와줘!
           </button>
