@@ -145,7 +145,7 @@ export default function Prompt() {
   }, [])
 
   return (
-    <div className="grid">
+    <div className="grid mt-5">
       <SnackbarProvider />
       {/**
        * SECTION 1. FORM == BEGIN ==
