@@ -1,8 +1,10 @@
+import AppBar from "@/component/AppBar"
 import Prompt from "@/component/prompt"
 
 export default async function Home() {
   return (
-    <div className="mt-10">
+    <div>
+      <AppBar />
       <Prompt />
     </div>
   )
