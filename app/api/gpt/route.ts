@@ -3,7 +3,7 @@ import { UserPromptResultOption } from "@/common/type"
 import { GPTRequestBody, GPTResponse } from "@/common/type/api"
 import axios from "axios"
 import { NextResponse } from "next/server"
-import { Configuration, OpenAIApi } from "openai"
+import { OpenAI } from "openai"
 
 /**
  * Please proof read below message by following the instructions.
@@ -28,10 +28,6 @@ export async function POST(
   request: CustomRequest
 ): Promise<NextResponse<GPTResponse>> {
   try {
-    const configuration = new Configuration({
-      apiKey: process.env.OPENAI_API_KEY,
-    })
-
     const body = await request.json()
     const {
       userPrompt,
@@ -46,7 +42,9 @@ export async function POST(
     // console.log({ userPromptResultOption })
     // console.log({ userPromptExplanationLanguage })
 
-    const openai = new OpenAIApi(configuration)
+    const openai = new OpenAI({
+      apiKey: process.env.OPENAI_API_KEY,
+    })
 
     console.log(
       `[GPT Proofread] ==== BEGIN ==== ${getWordCount(
@@ -82,9 +80,10 @@ export async function POST(
     console.log({ userChatMessage })
 
     // GPT REQUEST
-    const chatCompletion = await openai.createChatCompletion({
+    const chatCompletion = await openai.chat.completions.create({
       model: "gpt-3.5-turbo",
       // model: "gpt-4",
+      // model: "gpt-4-1106-preview",
       messages: [
         {
           role: "system",
@@ -98,7 +97,7 @@ export async function POST(
       temperature: 0.2,
     })
 
-    const gptResult = chatCompletion.data.choices[0].message?.content || ""
+    const gptResult = chatCompletion.choices[0].message?.content || ""
 
     console.log({ gptResult })
 
