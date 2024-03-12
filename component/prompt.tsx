@@ -324,6 +324,7 @@ export default function Prompt() {
                   <Tooltip title="결과 비교">
                     <ToggleButton
                       value="check"
+                      disabled={answerResult === finalUserPrompt}
                       selected={compareMode}
                       onChange={() => {
                         setCompareMode(!compareMode)
