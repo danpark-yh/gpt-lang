@@ -108,7 +108,7 @@ export async function POST(
     if (userPromptResultOption === UserPromptResultOption.ANSWER_ONLY) {
       // Remove EDITED_MESSAGE if exists
       if (gptResult.startsWith(EDITED_MESSAGE)) {
-        answerResult = gptResult.replace(EDITED_MESSAGE, "")
+        answerResult = gptResult.replaceAll(EDITED_MESSAGE, "")
       }
 
       /**
@@ -135,7 +135,7 @@ export async function POST(
     let answerExplanation = ""
 
     if (gptResult.startsWith(EDITED_MESSAGE)) {
-      answerResult = gptResult.replace(EDITED_MESSAGE, "")
+      answerResult = gptResult.replaceAll(EDITED_MESSAGE, "")
     }
 
     if (answerResult.includes(EDIT_EXPLANATION)) {
