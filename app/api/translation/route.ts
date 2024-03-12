@@ -1,7 +1,7 @@
 import { getWordCount } from "@/common/function/helper"
 import { TranslationRequestBody, TranslationResponse } from "@/common/type/api"
 import { NextResponse } from "next/server"
-import { Configuration, OpenAIApi } from "openai"
+import { OpenAI } from "openai"
 
 interface CustomRequest extends Request {
   json(): Promise<TranslationRequestBody>
@@ -10,11 +10,9 @@ interface CustomRequest extends Request {
 export async function POST(
   request: CustomRequest
 ): Promise<NextResponse<TranslationResponse>> {
-  const configuration = new Configuration({
+  const openai = new OpenAI({
     apiKey: process.env.OPENAI_API_KEY,
   })
-
-  const openai = new OpenAIApi(configuration)
   const body = await request.json()
   const { text, sourceLanguage, targetLanguage } = body
 
@@ -27,7 +25,7 @@ export async function POST(
   /**
    * Translation
    */
-  const chatCompletionTranslation = await openai.createChatCompletion({
+  const chatCompletionTranslation = await openai.chat.completions.create({
     model: "gpt-3.5-turbo",
     messages: [
       {
@@ -45,7 +43,7 @@ export async function POST(
   })
 
   let translatedText =
-    chatCompletionTranslation.data.choices[0].message?.content || ""
+    chatCompletionTranslation.choices[0].message?.content || ""
 
   /**
    * Customized post processing
